@@ -1,0 +1,127 @@
+---
+output:
+  html_document: default
+  word_document: default
+---
+
+
+```markdown
+
+## Présentation du projet
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+title: "Informatique pour Sciences Sociales : Examen final"
+author: "Patrick TELEMAQUE (TE214109), Kegeline OSCAR (OS212025),  Guerdy Victorancine PIERRE (PI191302)"
+date: "Le 14 juin 2024"
+output:
+  word_document: default
+  pdf_document: default
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(wbstats)
+library(ggplot2)
+library(dplyr)
+library(formattable)
+```
+
+```{r}
+# Importations de données 
+
+taux_change <- wb_data(indicator = "PA.NUS.FCRF", country = "HTI",
+                    start_date = 1990, end_date = 2022)
+
+exportations <- wb_data(indicator = "BG.GSR.NFSV.GD.ZS", country = "HTI",
+                    start_date = 1990, end_date = 2022)
+importations <- wb_data(indicator = "NE.IMP.GNFS.CD", country = "HTI", 
+                        start_date = 1990, end_date = 2022)
+IDE <- wb_data(indicator = "BX.KLT.DINV.WD.GD.ZS", country = "HTI",
+                        start_date = 1990, end_date = 2022)
+
+# Nettoyage des tableaux
+taux_change <- taux_change[, c(3, 4, 5)]
+exportations <- exportations[, c(5)]
+importations <- importations[, c(5)]
+IDE <- IDE[, c(5)]
+
+# Tableaux combinés
+tableau_combine <- cbind(taux_change, exportations, importations, IDE)
+
+# Renommons les variables
+colnames(tableau_combine) <- c("Pays", "Date", "Tauxdechange", "Exportations", "Importations", "IDE")
+
+# Régression linéaire 
+reg_lin <- summary(lm(Tauxdechange ~ Exportations + Importations + IDE, tableau_combine))
+```
+
+## Introduction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+```{r echo=FALSE}
+print("La compréhension des facteurs influençant les indicateurs économiques est fondamentale pour décrypter les dynamiques économiques et élaborer des politiques stratégiques. Dans cette optique, nous avons entrepris d'explorer les interactions complexes entre le taux de change, les exportations, les importations et les IDE afin d'éclairer la trajectoire économique d'Haïti sur une période de trois décennies, de 1990 à 2022. Le taux de change, en tant que baromètre essentiel de la valeur de la monnaie nationale par rapport aux autres devises, revêt une pertinence capitale dans notre analyse, influençant de manière directe la compétitivité, le commerce international et les flux d'investissement.")
+
+```
+## Tableau des variables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+```{r echo=FALSE}
+print(tableau_combine)
+```
+
+
+  
+# Nuage de points
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+### Graphique 1 : Taux de change et Exportations
+
+```{r echo=FALSE}
+ggplot(data = tableau_combine, mapping = aes(x = Exportations, y = Tauxdechange)) +
+  geom_point() +
+  labs(title = "Nuage de points | Exportations ") +
+  geom_smooth(method = "lm")
+```
+
+
+### Graphique 2 : Taux de change et Importations
+
+```{r echo=FALSE}
+ggplot(data = tableau_combine, mapping = aes(x = Importations, y = Tauxdechange)) +
+  geom_point() +
+  labs(title = "Nuage de points | Importations ") +
+  geom_smooth(method = "lm")
+```
+
+### Graphique 3 : Taux de change et IDE
+
+```{r echo=FALSE}
+ggplot(data = tableau_combine, mapping = aes(x = IDE, y = Tauxdechange)) +
+  geom_point() +
+  labs(title = "Nuage de points | IDE") +
+  geom_smooth(method = "lm")
+```
+
+## Régression 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+### Tableau de régression 
+
+```{r echo=FALSE}
+print(reg_lin)
+```
+
+
+### Nuage de points pour les valeurs résiduelles vs valeurs estimées 
+
+```{r echo=FALSE}
+plot(lm(Tauxdechange ~ Exportations + Importations + IDE, tableau_combine),
+     main = "V.résiduelles vs V.estimées", which = 1) 
+```
+
+### Commentaires
+
+```{r echo=FALSE}
+print("Le graphique des résidus montre une distribution asymétrique des erreurs, avec des valeurs minimales et maximales significatives. Les coefficients des variables explicatives présentent des niveaux de signification variables, confirmant la validité globale du modèle.")
+
+```
